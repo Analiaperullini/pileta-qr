@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Gestión de Socios - CLUB</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card-bg: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      --txt: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --border: rgba(255,255,255,.10);
+    }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--txt);
+      background: radial-gradient(1200px 600px at 30% 10%, #1b2a5a 0%, var(--bg) 55%);
+      padding: 22px;
+    }
+    header {
+      max-width: 1100px; margin: 0 auto 25px auto;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-back { background: rgba(255,255,255,0.05); color: white; padding: 10px 15px; border-radius: 12px; text-decoration: none; border: 1px solid var(--border); font-size: 14px; }
+    
+    /* Panel de Filtros */
+    .filters {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 20px; margin-bottom: 25px;
+      display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px;
+      align-items: end; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .field { display: grid; gap: 6px; }
+    .label { color: var(--muted); font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    input, select {
+      padding: 12px; border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(0,0,0,.3); color: white; outline: none; font-size: 14px;
+    }
+    input:focus, select:focus { border-color: var(--accent); }
+    .btn-clear { background: #f87171; color: #450a0a; border: none; padding: 12px 18px; border-radius: 12px; font-weight: 800; cursor: pointer; }
+
+    /* Tabla */
+    .table-wrap {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 15px; background: rgba(0,0,0,0.2); color: var(--muted); font-size: 12px; }
+    td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    tr:hover { background: rgba(255,255,255,0.02); }
+    
+    .badge-sport {
+      background: rgba(34,197,94,.1); color: #86efac; border: 1px solid rgba(34,197,94,0.2);
+      padding: 3px 8px; border-radius: 8px; font-size: 11px; margin-right: 4px; display: inline-block;
+    }
+    .btn-action { color: var(--accent); background: none; border: 1px solid var(--accent); padding: 5px 10px; border-radius: 8px; cursor: pointer; text-decoration: none; font-size: 12px; }
+    
+    @media (max-width: 800px) { .filters { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <h1 style="margin:0; font-size:24px;">Lista de Socios</h1>
+      <p style="margin:5px 0 0; color:var(--muted); font-size:13px;">TodoFutbol & Voley • Panel Administrativo</p>
+    </div>
+    <a href="/" class="btn-back">← Panel Principal</a>
+  </header>
+
+  <main style="max-width:1100px; margin:0 auto;">
+    
+    <div class="filters">
+      <div class="field">
+        <div class="label">Buscar por Nombre</div>
+        <input id="fNombre" placeholder="Ej: Lionel Messi" oninput="filtrar()">
+      </div>
+      <div class="field">
+        <div class="label">Buscar por DNI</div>
+        <input id="fDni" placeholder="Ej: 35123456" oninput="filtrar()">
+      </div>
+      <div class="field">
+        <div class="label">Filtrar por Deporte</div>
+        <select id="fDeporte" onchange="filtrar()">
+          <option value="">Todos los deportes</option>
+          </select>
+      </div>
+      <button class="btn-clear" onclick="limpiarFiltros()">Limpiar</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SOCIO</th>
+            <th>DNI / CONTACTO</th>
+            <th>DEPORTES / CATEGORÍAS</th>
+            <th style="text-align:right;">ACCIONES</th>
+          </tr>
+        </thead>
+        <tbody id="tablaSocios">
+          </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    // Cargar deportes en el SELECT al iniciar
+    window.onload = async () => {
+      const res = await fetch('/api/deportes');
+      const deportes = await res.json();
+      const select = document.getElementById('fDeporte');
+      deportes.forEach(d => {
+        select.innerHTML += `<option value="${d.id}">${d.nombre} (${d.categoria})</option>`;
+      });
+      filtrar(); // Carga inicial de todos los socios
+    };
+
+    async function filtrar() {
+      const n = document.getElementById('fNombre').value;
+      const d = document.getElementById('fDni').value;
+      const s = document.getElementById('fDeporte').value;
+
+      // Llamamos a la API de búsqueda avanzada
+      const res = await fetch(`/api/socios/filtrar?nombre=${n}&dni=${d}&deporteId=${s}`);
+      const socios = await res.json();
+      
+      const tbody = document.getElementById('tablaSocios');
+      tbody.innerHTML = socios.map(socio => `
+        <tr>
+          <td>
+            <div style="font-weight:700;">${socio.nombre}</div>
+            <div style="font-size:11px; color:var(--muted);">ID: #${socio.id}</div>
+          </td>
+          <td>
+            <div>${socio.dni}</div>
+            <div style="font-size:11px; color:var(--muted);">${socio.email || 'Sin email'}</div>
+          </td>
+          <td>
+            ${socio.deportes.map(dep => `<span class="badge-sport">${dep.nombre}</span>`).join('')}
+          </td>
+          <td style="text-align:right;">
+            <a href="/carnet/socio/${socio.id}" class="btn-action">CARNET</a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function limpiarFiltros() {
+      document.getElementById('fNombre').value = '';
+      document.getElementById('fDni').value = '';
+      document.getElementById('fDeporte').value = '';
+      filtrar();
+    }
+  </script>
+</body>
+</html>

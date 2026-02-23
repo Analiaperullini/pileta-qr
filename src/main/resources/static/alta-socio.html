@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Alta de socio</title>
+  <script src="/auth.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card1:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.03);
+      --txt:#e2e8f0;
+      --muted:#94a3b8;
+      --border:rgba(255,255,255,.10);
+      --accent:#22c55e;
+      --shadow:0 24px 70px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    body{
+      margin:0; min-height:100vh; color:var(--txt);
+      background: radial-gradient(1200px 600px at 30% 10%, #1b2a5a 0%, var(--bg) 55%);
+    }
+    header{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:18px 22px; border-bottom:1px solid var(--border);
+      background:rgba(0,0,0,.18); backdrop-filter: blur(10px);
+      position:sticky; top:0; z-index:10;
+    }
+    .title{display:flex; align-items:center; gap:12px;}
+    .badge{
+      width:40px; height:40px; border-radius:14px;
+      display:grid; place-items:center;
+      background:rgba(34,197,94,.15);
+      border:1px solid rgba(34,197,94,.25);
+      font-weight:900; color:#86efac;
+    }
+    h1{margin:0; font-size:18px}
+    .sub{margin:2px 0 0; color:var(--muted); font-size:12px}
+    .btn{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.06);
+      color:var(--txt);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn:hover{border-color:rgba(34,197,94,.45)}
+    .go{
+      border:0;
+      background:linear-gradient(90deg, #22c55e, #16a34a);
+      color:#05130a;
+      font-weight:900;
+      padding:12px 16px;
+      border-radius:14px;
+      cursor:pointer;
+    }
+    .go:disabled{
+      opacity:.55; cursor:not-allowed;
+    }
+
+    main{padding:22px; max-width:980px; margin:0 auto;}
+    .wrap{display:grid; gap:14px;}
+    .card{
+      background:linear-gradient(180deg, var(--card1), var(--card2));
+      border:1px solid var(--border);
+      border-radius:20px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .cardHead{
+      padding:16px 16px 0 16px;
+    }
+    .cardHead h2{margin:0; font-size:18px}
+    .cardHead p{margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.35}
+    .cardBody{padding:16px; display:grid; gap:14px;}
+
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    @media (max-width:820px){ .grid2{grid-template-columns:1fr;} }
+
+    .field{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.20);
+      border-radius:16px;
+      padding:12px;
+      display:grid; gap:6px;
+    }
+    .label{color:var(--muted); font-size:12px;}
+    input{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25);
+      color:var(--txt);
+      outline:none;
+    }
+    input:focus{
+      border-color:rgba(34,197,94,.55);
+      box-shadow:0 0 0 3px rgba(34,197,94,.15);
+    }
+
+    .cameraBox{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:12px;
+      align-items:start;
+    }
+    @media (max-width:820px){ .cameraBox{grid-template-columns:1fr;} }
+
+    video, canvas{
+      width:100%;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25);
+    }
+    .preview{
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.20);
+      border-radius:16px;
+      padding:12px;
+      display:grid;
+      gap:10px;
+      justify-items:center;
+    }
+    .previewImg{
+      width:180px; height:180px;
+      border-radius:18px;
+      object-fit:cover;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25);
+    }
+    .hint{color:var(--muted); font-size:12px; text-align:center;}
+
+    .actions{
+      display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;
+      padding:14px 16px 16px 16px;
+      border-top:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.10);
+    }
+
+    .status{
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.22);
+      color:var(--muted);
+      font-size:13px;
+    }
+    .status.ok{border-color:rgba(34,197,94,.35); color:#bbf7d0; background:rgba(34,197,94,.10);}
+    .status.err{border-color:rgba(239,68,68,.35); color:#fecaca; background:rgba(239,68,68,.08);}
+  </style>
+</head>
+
+<body>
+  <script>requireAuth();</script>
+
+  <header>
+    <div class="title">
+      <div class="badge">＋</div>
+      <div>
+        <h1>Alta de socio</h1>
+        <div class="sub">Cargá datos • Sacá foto • Guardá • Se abre el carnet</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px;">
+      <button class="btn" onclick="location.href='/'">← Volver</button>
+      <button class="btn" onclick="logout()">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="wrap">
+
+      <div class="card">
+        <div class="cardHead">
+          <h2>Datos del socio</h2>
+          <p>Nombre y DNI son obligatorios. Teléfono y email son opcionales.</p>
+        </div>
+
+        <div class="cardBody">
+          <div class="grid2">
+            <div class="field">
+              <div class="label">Nombre *</div>
+              <input id="nombre" placeholder="Ej: Juan Pérez" />
+            </div>
+            <div class="field">
+              <div class="label">DNI *</div>
+              <input id="dni" placeholder="Ej: 12345678 (sin puntos)" inputmode="numeric" />
+            </div>
+          </div>
+
+          <div class="grid2">
+            <div class="field">
+              <div class="label">Teléfono</div>
+              <input id="telefono" placeholder="Ej: 2991234567" inputmode="tel" />
+            </div>
+            <div class="field">
+              <div class="label">Email</div>
+              <input id="email" placeholder="Ej: juan@test.com" inputmode="email" />
+            </div>
+            <label style="display:block; margin-top:10px; color:var(--muted); font-size:12px;">Deportes Inscritos</label>
+<div class="field" style="margin-top:10px;">
+  <div class="label">Deportes y Categorías Disponibles</div>
+  <div id="contenedorDeportes" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+    <p style="color:var(--muted); font-size:12px;">Cargando deportes...</p>
+  </div>
+</div>
+          </div>
+        </div>
+
+        <div class="cardHead">
+          <h2>Foto</h2>
+          <p>Podés sacarla con cámara o dejarla vacía.</p>
+        </div>
+
+        <div class="cardBody">
+          <div class="cameraBox">
+            <div class="field">
+              <div class="label">Cámara</div>
+              <video id="video" autoplay playsinline style="display:none;"></video>
+              <canvas id="canvas" style="display:none;"></canvas>
+
+              <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                <button class="btn" type="button" onclick="startCam()">Iniciar cámara</button>
+                <button class="btn" type="button" onclick="takePhoto()" id="btnFoto" disabled>Sacar foto</button>
+                <button class="btn" type="button" onclick="stopCam()" id="btnStop" disabled>Detener</button>
+              </div>
+
+              <div class="hint" style="margin-top:10px;">
+                Si estás en celular, a veces conviene usar la cámara trasera.
+              </div>
+            </div>
+
+            <div class="preview">
+              <img id="prev" class="previewImg" alt="preview" src="" style="display:none;" />
+              <div id="noPrev" class="previewImg" style="display:grid; place-items:center; color:var(--muted); font-size:12px;">
+                Sin foto
+              </div>
+              <div class="hint">La foto capturada se guarda con el socio.</div>
+            </div>
+          </div>
+
+          <div id="status" class="status">Listo para cargar un nuevo socio.</div>
+        </div>
+
+        <div class="actions">
+          <button class="go" id="btnGuardar" onclick="guardarSocio()">Guardar socio</button>
+        </div>
+        
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let stream = null;
+    let fotoBlob = null;
+
+    function setStatus(text, type){
+      const el = document.getElementById("status");
+      el.className = "status" + (type ? (" " + type) : "");
+      el.textContent = text;
+    }
+    // 1. Cargar deportes apenas abre la página
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('/api/deportes');
+        const deportes = await res.json();
+        const div = document.getElementById('contenedorDeportes');
+        
+        if(deportes.length === 0) {
+            div.innerHTML = '<p style="color:#f87171; font-size:12px;">No hay deportes creados. Ir a Administración.</p>';
+            return;
+        }
+
+        div.innerHTML = deportes.map(d => `
+            <label style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); padding:10px; border-radius:12px; cursor:pointer; border:1px solid var(--border);">
+                <input type="checkbox" name="deporte" value="${d.id}" style="width:18px; height:18px;">
+                <div>
+                    <div style="font-size:13px; font-weight:bold; color:var(--accent);">${d.nombre}</div>
+                    <div style="font-size:11px; color:var(--muted);">${d.categoria}</div>
+                </div>
+            </label>
+        `).join('');
+    } catch (e) {
+        console.error("Error cargando deportes:", e);
+    }
+});
+
+    async function startCam(){
+      try{
+        // si querés forzar trasera: { facingMode: { ideal: "environment" } }
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        const v = document.getElementById("video");
+        v.srcObject = stream;
+        v.style.display = "block";
+        document.getElementById("btnFoto").disabled = false;
+        document.getElementById("btnStop").disabled = false;
+        setStatus("Cámara lista. Cuando quieras, sacá la foto.", "");
+      }catch(e){
+        setStatus("No se pudo acceder a la cámara. Podés guardar igual sin foto.", "err");
+      }
+    }
+
+    function stopCam(){
+      if(stream){
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      const v = document.getElementById("video");
+      v.style.display = "none";
+      document.getElementById("btnFoto").disabled = true;
+      document.getElementById("btnStop").disabled = true;
+      setStatus("Cámara detenida.", "");
+    }
+
+    function takePhoto(){
+      const v = document.getElementById("video");
+      const c = document.getElementById("canvas");
+      if(!v || v.style.display === "none"){
+        setStatus("Primero iniciá la cámara.", "err");
+        return;
+      }
+      c.width = v.videoWidth || 640;
+      c.height = v.videoHeight || 480;
+
+      const ctx = c.getContext("2d");
+      ctx.drawImage(v, 0, 0, c.width, c.height);
+
+      c.toBlob((blob) => {
+        fotoBlob = blob;
+
+        const prev = document.getElementById("prev");
+        const noPrev = document.getElementById("noPrev");
+        prev.src = URL.createObjectURL(blob);
+        prev.style.display = "block";
+        noPrev.style.display = "none";
+
+        setStatus("Foto capturada ✅", "ok");
+      }, "image/jpeg", 0.92);
+    }
+
+   async function guardarSocio(){
+  const btn = document.getElementById("btnGuardar");
+  const nombre = document.getElementById("nombre").value.trim();
+  const dni = document.getElementById("dni").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const email = document.getElementById("email").value.trim();
+
+  if(!nombre || !dni){
+    setStatus("Completá Nombre y DNI.", "err");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = "Guardando…";
+  setStatus("Guardando socio…", "");
+
+  try{
+    const fd = new FormData();
+    fd.append("nombre", nombre);
+    fd.append("dni", dni);
+    fd.append("telefono", telefono);
+    fd.append("email", email);
+
+    // 📸 Foto (si existe)
+    if(fotoBlob){
+      fd.append("foto", fotoBlob, "foto.jpg");
+    }
+
+    // ⚽ DEPORTES: Capturamos los seleccionados
+    const deportesSeleccionados = Array.from(document.querySelectorAll('input[name="deporte"]:checked'))
+                                     .map(cb => cb.value);
+    
+    // Lo enviamos como un campo de texto (muchos servidores Java lo reciben así o como lista)
+    fd.append("deportes", deportesSeleccionados.join(", "));
+
+    const res = await fetch("/api/socios", { method:"POST", body: fd });
+    const data = await res.json().catch(()=> ({}));
+
+
+    if(!res.ok){
+      setStatus(data.msg || ("Error al guardar (HTTP " + res.status + ")"), "err");
+      return;
+    }
+
+    setStatus("Socio creado ✅ Abriendo carnet…", "ok");
+
+    if(data && data.id){
+      // 🚀 Redirigimos al carnet que ya funciona con el diseño pro
+      window.location.href = "/carnet/socio/" + encodeURIComponent(data.id);
+    }else{
+      setStatus("Socio creado, pero no recibí el ID para abrir el carnet.", "err");
+    }
+
+  } catch(e) {
+    setStatus("Error de red / servidor.", "err");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Guardar socio";
+  }
+}
+  </script>
+</body>
+</html>

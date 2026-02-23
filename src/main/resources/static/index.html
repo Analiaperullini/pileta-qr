@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CLUB - Panel de Control</title>
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --muted: #94a3b8;
+      --txt: #e2e8f0;
+      --accent: #22c55e;
+      --border: rgba(255,255,255,.08);
+      --card-bg: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+    }
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--txt);
+      background: radial-gradient(1200px 600px at 30% 10%, #1b2a5a 0%, var(--bg) 55%);
+    }
+    header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 18px 22px; border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,.18); backdrop-filter: blur(10px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .badge {
+      width: 40px; height: 40px; border-radius: 14px;
+      display: grid; place-items: center;
+      background: rgba(34,197,94,.15); border: 1px solid rgba(34,197,94,.25);
+      font-weight: 900; color: #86efac;
+    }
+    h1 { margin: 0; font-size: 18px; }
+    .sub { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+
+    main { padding: 22px; max-width: 1100px; margin: 0 auto; }
+
+    .search-box {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 20px; padding: 24px; margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .search-row { display: flex; gap: 12px; margin-top: 15px; }
+    input {
+      flex: 1; padding: 14px; border-radius: 12px;
+      border: 1px solid var(--border); background: rgba(0,0,0,0.3);
+      color: white; font-size: 16px; outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+    
+    .btn-search {
+      padding: 0 24px; border-radius: 12px; border: 0;
+      background: var(--accent); color: #05130a;
+      font-weight: 800; cursor: pointer; transition: 0.2s;
+    }
+    .btn-search:hover { transform: translateY(-2px); opacity: 0.9; }
+
+    #resultado {
+      margin-top: 20px; padding: 20px; border-radius: 16px;
+      background: rgba(34, 197, 94, 0.08); border: 1px solid rgba(34, 197, 94, 0.2);
+      display: none; align-items: center; justify-content: space-between;
+    }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 18px; padding: 20px; cursor: pointer; transition: 0.2s;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .card:hover { border-color: rgba(34,197,94,.4); transform: translateY(-3px); }
+    .card h2 { margin: 0; font-size: 18px; }
+    .card .icon { font-size: 24px; margin-bottom: 4px; }
+
+    .sport-badge {
+      background: rgba(34, 197, 94, 0.2); color: #86efac;
+      padding: 3px 10px; border-radius: 20px; font-size: 11px;
+      font-weight: bold; border: 1px solid rgba(34, 197, 94, 0.3);
+      margin-right: 5px; display: inline-block; margin-top: 5px;
+    }
+
+    .btn-logout { background: transparent; color: var(--muted); border: 1px solid var(--border); padding: 8px 16px; border-radius: 10px; cursor: pointer; }
+    
+    @media(max-width: 600px) { .search-row { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div class="badge">ARP</div>
+    <div>
+      <h1>CLUB</h1>
+      <div class="sub">Panel de Control Club</div>
+    </div>
+  </div>
+  <button class="btn-logout" onclick="location.href='/login.html'">Cerrar sesión</button>
+</header>
+
+<main>
+  <section class="search-box">
+    <h2 style="margin:0">🔍 Acceso Rápido</h2>
+    <p class="sub">Buscá un socio por DNI para ver sus deportes y carnet.</p>
+    
+    <div class="search-row">
+      <input id="dniBuscar" type="text" placeholder="Ingresá DNI..." onkeypress="if(event.key==='Enter') buscarSocio()">
+      <button class="btn-search" onclick="buscarSocio()">BUSCAR</button>
+    </div>
+
+    <div id="resultado">
+      <div>
+        <strong id="rNombre" style="font-size: 20px; color: var(--accent);"></strong><br>
+        <span id="rInfo" class="sub" style="font-size: 14px;"></span>
+        <div id="rDeportes" style="margin-top: 10px;"></div>
+      </div>
+      <button class="btn-search" style="padding: 12px 20px;" onclick="abrirCarnet()">VER CARNET</button>
+    </div>
+    <div id="msg" style="margin-top: 10px; font-size: 14px; color: #ef4444;"></div>
+  </section>
+
+  <div class="grid">
+    <div class="card" onclick="location.href='/scan.html'">
+      <div class="icon">✅</div>
+      <h2>Validar Acceso</h2>
+      <p class="sub">Escanear QR en portería.</p>
+    </div>
+
+    <div class="card" onclick="location.href='/alta-socio.html'">
+      <div class="icon">➕</div>
+      <h2>Alta de Socio</h2>
+      <p class="sub">Nuevo socio y deportes.</p>
+    </div>
+
+    <div class="card" onclick="location.href='/admin-deportes.html'">
+      <div class="icon">🏆</div>
+      <h2>Gestionar Deportes</h2>
+      <p class="sub">Crear fútbol, voley y categorías.</p>
+    </div>
+
+    <div class="card" onclick="location.href='/socios.html'">
+      <div class="icon">👥</div>
+      <h2>Lista de Socios</h2>
+      <p class="sub">Ver todos y editar datos.</p>
+    </div>
+  </div>
+</main>
+
+<script>
+let socioActual = null;
+
+async function buscarSocio() {
+  const q = document.getElementById("dniBuscar").value.trim();
+  const msg = document.getElementById("msg");
+  const resDiv = document.getElementById("resultado");
+  const depDiv = document.getElementById("rDeportes");
+
+  msg.textContent = "";
+  resDiv.style.display = "none";
+  depDiv.innerHTML = "";
+  socioActual = null;
+  
+  if(!q) return;
+
+  try {
+    const r = await fetch(`/api/socios/buscar?q=${q}`);
+    if (!r.ok) { msg.textContent = "Socio no encontrado."; return; }
+
+    const socio = await r.json();
+
+    if(socio && socio.id) {
+      socioActual = socio;
+      document.getElementById("rNombre").textContent = socio.nombre;
+      document.getElementById("rInfo").textContent = `DNI: ${socio.dni} | ID: #${socio.id}`;
+      
+      // Mostrar deportes si tiene
+      if(socio.deportes && socio.deportes.length > 0) {
+        depDiv.innerHTML = socio.deportes.map(d => 
+          `<span class="sport-badge">${d.nombre} (${d.categoria})</span>`
+        ).join('');
+      } else {
+        depDiv.innerHTML = `<span class="sub">Sin deportes asignados</span>`;
+      }
+
+      resDiv.style.display = "flex";
+    }
+  } catch(e) {
+    msg.textContent = "Error de conexión con el servidor.";
+  }
+}
+
+function abrirCarnet() {
+  if (socioActual) {
+    window.location.href = "/carnet/socio/" + socioActual.id;
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Carnet Digital - Pileta Municipal</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card-bg: #1e293b;
+      --accent: #22c55e;
+      --border: rgba(255,255,255,0.1);
+      --txt: #f8fafc;
+    }
+
+    body {
+      margin: 0; font-family: system-ui, sans-serif;
+      background-color: var(--bg); color: var(--txt);
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+    }
+
+    .carnet-card {
+      width: 650px; background: var(--card-bg);
+      border-radius: 24px; overflow: hidden;
+      display: flex; position: relative;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    }
+
+    .info-section { padding: 30px; flex: 1; }
+    .header-info { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .status-badge { background: rgba(34,197,94,0.2); color: #4ade80; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid rgba(34,197,94,0.3); }
+    
+    .socio-nombre { font-size: 28px; font-weight: 800; margin: 0; color: white; }
+    .socio-sub { color: #94a3b8; font-size: 14px; margin-bottom: 20px; }
+
+    .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;}
+    .data-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; }
+    .label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: 700; display: block; }
+    .value { font-size: 14px; font-weight: 600; color: #cbd5e1; }
+
+    .qr-section { background: #f8fafc; padding: 30px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 260px; }
+    .qr-img { width: 180px; height: 180px; }
+    .token-text { margin-top: 15px; color: #0f172a; font-family: monospace; font-weight: 800; font-size: 18px; }
+
+    .actions { position: fixed; top: 20px; right: 20px; display: flex; gap: 10px; }
+    .btn { padding: 10px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .btn-print { background: var(--accent); color: #05130a; }
+    .btn-back { background: rgba(255,255,255,0.1); color: white; text-decoration: none; }
+
+    @media print {
+      .actions { display: none; }
+      body { background: white !important; }
+      .carnet-card { box-shadow: none; border: 1px solid #ddd; background: white !important; color: black !important; width: 100%; margin: 0; }
+      .socio-nombre, .value { color: black !important; }
+      .data-item { background: #f1f5f9 !important; border: 1px solid #e2e8f0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="actions">
+    <a href="javascript:history.back()" class="btn btn-back">← Volver</a>
+    <button class="btn btn-print" onclick="window.print()">🖨 Imprimir</button>
+  </div>
+
+  <div class="carnet-card" th:if="${socio}">
+    <div class="info-section">
+      <div class="header-info">
+        <div>
+          <h1 class="socio-nombre" th:text="${socio.nombre}">Nombre Socio</h1>
+          <div class="socio-sub">Socio • Acceso Mensual</div>
+        </div>
+        <span class="status-badge">ACTIVO</span>
+      </div>
+
+      <div class="deportes-box" style="margin-bottom: 20px;">
+        <p style="color: #94a3b8; font-size: 11px; font-weight: 700; margin-bottom: 5px;">DEPORTES:</p>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+            <th:block th:each="d : ${deportes}">
+                <span style="background: rgba(34,197,94,0.15); color: #86efac; padding: 4px 10px; border-radius: 8px; font-size: 12px; border: 1px solid rgba(34,197,94,0.2);" th:text="${d.nombre}">
+                    Deporte
+                </span>
+            </th:block>
+            <span th:if="${#lists.isEmpty(deportes)}" style="color: #64748b; font-size: 12px;">Sin deportes asignados</span>
+        </div>
+      </div>
+
+      <div class="data-grid">
+        <div class="data-item">
+          <span class="label">ID Socio</span>
+          <span class="value" th:text="${socio.id}">-</span>
+        </div>
+        <div class="data-item">
+          <span class="label">Vencimiento</span>
+          <span class="value">2026-03-01</span> </div>
+        <div class="data-item" style="grid-column: span 2;">
+          <span class="label">DNI</span>
+          <span class="value" th:text="${socio.dni}">-</span>
+        </div>
+        <div class="data-item" style="grid-column: span 2;">
+          <span class="label">Email</span>
+          <span class="value" th:text="${socio.email ?: 'No registrado'}">-</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <img class="qr-img" th:src="@{'/qr.png?token=' + ${socio.dni}}" alt="QR">
+      <div class="token-text" th:text="${socio.dni}">TOKEN</div>
+      <small style="color: #64748b; font-size: 10px; margin-top: 10px;">Escaneá para validar acceso</small>
+    </div>
+  </div>
+
+  <div th:unless="${socio}">
+      <h1>Error: Socio no encontrado</h1>
+  </div>
+
+</body>
+</html>
