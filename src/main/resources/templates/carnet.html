@@ -93,7 +93,8 @@
         </div>
         <div class="data-item">
           <span class="label">Vencimiento</span>
-          <span class="value">2026-03-01</span> </div>
+          <span class="value" th:text="${#temporals.format(carnetVence, 'dd/MM/yyyy')}">-</span>
+        </div>
         <div class="data-item" style="grid-column: span 2;">
           <span class="label">DNI</span>
           <span class="value" th:text="${socio.dni}">-</span>
@@ -106,8 +107,8 @@
     </div>
 
     <div class="qr-section">
-      <img class="qr-img" th:src="@{'/qr.png?token=' + ${socio.dni}}" alt="QR">
-      <div class="token-text" th:text="${socio.dni}">TOKEN</div>
+      <img class="qr-img" th:src="@{'/qr.png?token=' + ${carnetToken}}" alt="QR">
+      <div class="token-text" th:text="${#strings.substring(carnetToken, 0, 8)}">TOKEN</div>
       <small style="color: #64748b; font-size: 10px; margin-top: 10px;">Escaneá para validar acceso</small>
     </div>
   </div>

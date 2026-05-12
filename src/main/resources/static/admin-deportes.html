@@ -3,138 +3,212 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Configuración de Deportes - TodoFutbol & Voley</title>
+  <title>Gestionar Deportes — Club Pileta QR</title>
+  <script>(function(){document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark');})()</script>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="auth.js"></script>
   <style>
-    :root {
-      --bg: #0b1220;
-      --card-bg: rgba(255,255,255,.05);
-      --txt: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #22c55e;
-      --border: rgba(255,255,255,.10);
+    .add-form {
+      display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: end;
+      margin-bottom: 24px;
     }
-    * { box-sizing: border-box; font-family: system-ui, sans-serif; }
-    body {
-      margin: 0; min-height: 100vh; color: var(--txt);
-      background: radial-gradient(1200px 600px at 30% 10%, #1b2a5a 0%, var(--bg) 55%);
-      padding: 20px;
-    }
-    .container { max-width: 900px; margin: 0 auto; }
-    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    
-    .card {
-      background: var(--card-bg); border: 1px solid var(--border);
-      border-radius: 20px; padding: 24px; backdrop-filter: blur(10px);
-    }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; }
-    .field { display: grid; gap: 8px; }
-    .label { color: var(--muted); font-size: 13px; font-weight: 600; }
-    
-    input {
-      padding: 12px; border-radius: 12px; border: 1px solid var(--border);
-      background: rgba(0,0,0,.3); color: white; outline: none;
-    }
-    input:focus { border-color: var(--accent); }
-    
-    .btn-add {
-      background: var(--accent); color: #05130a; border: none;
-      padding: 12px 24px; border-radius: 12px; font-weight: 800; cursor: pointer;
-    }
-    .btn-back { background: rgba(255,255,255,0.1); color: white; text-decoration: none; padding: 8px 16px; border-radius: 10px; font-size: 14px; }
+    @media (max-width: 600px) { .add-form { grid-template-columns: 1fr; } }
 
-    table { width: 100%; margin-top: 30px; border-collapse: collapse; }
-    th { text-align: left; color: var(--muted); padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; text-transform: uppercase; }
-    td { padding: 16px 12px; border-bottom: 1px solid var(--border); }
-    .cat-badge { background: rgba(34,197,94,0.1); color: #86efac; padding: 4px 10px; border-radius: 8px; font-size: 12px; }
-    .btn-del { color: #f87171; background: none; border: none; cursor: pointer; font-size: 13px; }
+    /* Confirm dialog */
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.6);
+      display: grid; place-items: center; z-index: 200;
+      backdrop-filter: blur(4px);
+      animation: _fadeUp .15s ease-out;
+    }
+    .dialog {
+      background: var(--dialog-bg); border: 1px solid var(--border);
+      border-radius: var(--r-xl); padding: 28px; max-width: 360px; width: 90%;
+      box-shadow: var(--shadow);
+    }
+    .dialog h3 { margin: 0 0 8px; font-size: 18px; }
+    .dialog p  { color: var(--txt-muted); font-size: 14px; margin: 0 0 22px; }
+    .dialog-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    #emptyDeportes { display: none; }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
+<header class="site-header">
+  <div class="header-brand">
+    <div class="logo-badge">🏆</div>
     <div>
-      <h1 style="margin:0">Configuración de Deportes</h1>
-      <div style="color:var(--muted); font-size:13px; margin-top:4px;">CLUB • Panel de Control</div>
+      <div class="header-brand-title">Deportes</div>
+      <div class="header-brand-sub">Configuración de deportes y categorías</div>
     </div>
-    <a href="/" class="btn-back">← Volver</a>
-  </header>
+  </div>
+  <nav class="header-nav">
+    <button class="btn btn-sm" id="themeToggle" onclick="toggleTheme()">Modo claro</button>
+    <a href="/" class="btn btn-sm">← Volver</a>
+  </nav>
+</header>
 
-  <div class="card">
-    <div class="form-grid">
-      <div class="field">
-        <div class="label">Nombre del Deporte</div>
-        <input id="nombreDep" placeholder="Ej: Fútbol 11">
+<main class="page-main">
+
+  <div class="card card-body">
+    <div class="add-form">
+      <div class="form-group">
+        <label class="form-label" for="nombreDep">Nombre del deporte</label>
+        <input id="nombreDep" class="form-input" placeholder="Ej: Fútbol 11"
+               onkeypress="if(event.key==='Enter') agregarDeporte()" />
       </div>
-      <div class="field">
-        <div class="label">Categoría / Edad</div>
-        <input id="catDep" placeholder="Ej: Sub-17">
+      <div class="form-group">
+        <label class="form-label" for="catDep">Categoría / Edad</label>
+        <input id="catDep" class="form-input" placeholder="Ej: Sub-17"
+               onkeypress="if(event.key==='Enter') agregarDeporte()" />
       </div>
-      <button class="btn-add" onclick="agregarDeporte()">+ Agregar</button>
+      <button class="btn btn-primary" id="btnAgregar" onclick="agregarDeporte()">+ Agregar</button>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Deporte</th>
-          <th>Categoría</th>
-          <th style="text-align:right">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="listaDeportes">
-        </tbody>
-    </table>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Deporte</th>
+            <th>Categoría</th>
+            <th style="text-align:right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="listaDeportes"></tbody>
+      </table>
+    </div>
+
+    <div id="emptyDeportes" class="empty-state">
+      <span class="empty-icon">🏆</span>
+      <div class="empty-title">Sin deportes aún</div>
+      <p class="empty-desc">Creá el primer deporte usando el formulario de arriba.</p>
+    </div>
+  </div>
+
+</main>
+
+<!-- Confirm dialog -->
+<div id="confirmOverlay" class="overlay d-none">
+  <div class="dialog">
+    <h3>¿Eliminar deporte?</h3>
+    <p id="confirmMsg">Esta acción no se puede deshacer.</p>
+    <div class="dialog-actions">
+      <button class="btn" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn btn-danger" id="confirmOk">Eliminar</button>
+    </div>
   </div>
 </div>
 
+<div id="toast-root"></div>
+
 <script>
-  // Cargar al inicio
+  initTheme();
+  /* ── Toast ── */
+  function toast(msg, type = 'ok', ms = 3500) {
+    const root = document.getElementById('toast-root');
+    const el = document.createElement('div');
+    el.className = `toast-item toast-${type}`;
+    el.innerHTML = `<span>${type === 'ok' ? '✅' : '❌'}</span><span>${msg}</span>`;
+    root.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('toast-fade');
+      el.addEventListener('animationend', () => el.remove(), { once: true });
+    }, ms);
+  }
+
+  /* ── Confirm dialog ── */
+  let confirmCallback = null;
+  function openConfirm(msg, cb) {
+    document.getElementById('confirmMsg').textContent = msg;
+    document.getElementById('confirmOverlay').classList.remove('d-none');
+    confirmCallback = cb;
+    document.getElementById('confirmOk').onclick = () => { closeConfirm(); cb(); };
+  }
+  function closeConfirm() {
+    document.getElementById('confirmOverlay').classList.add('d-none');
+    confirmCallback = null;
+  }
+  document.getElementById('confirmOverlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeConfirm();
+  });
+
+  /* ── Load ── */
   window.onload = listarDeportes;
 
   async function listarDeportes() {
     try {
-      const res = await fetch('/api/deportes');
+      const res      = await fetch('/api/deportes');
       const deportes = await res.json();
-      const tbody = document.getElementById('listaDeportes');
-      
-      // Corregimos el "undefined" usando las claves correctas
+      const tbody    = document.getElementById('listaDeportes');
+      const empty    = document.getElementById('emptyDeportes');
+
+      if (!deportes.length) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
       tbody.innerHTML = deportes.map(d => `
         <tr>
-          <td style="font-weight:700;">${d.nombre || 'Sin nombre'}</td>
-          <td><span class="cat-badge">${d.categoria || 'General'}</span></td>
+          <td class="fw-bold">${d.nombre || 'Sin nombre'}</td>
+          <td><span class="badge badge-green">${d.categoria || 'General'}</span></td>
           <td style="text-align:right">
-            <button class="btn-del" onclick="eliminarDeporte(${d.id})">Eliminar</button>
+            <button class="btn btn-sm btn-danger" onclick="pedirEliminar(${d.id}, '${(d.nombre || '').replace(/'/g,"\\'")}')">
+              Eliminar
+            </button>
           </td>
         </tr>
       `).join('');
     } catch (e) {
-      console.error("Error:", e);
+      toast('Error al cargar deportes.', 'err');
     }
   }
 
   async function agregarDeporte() {
-    const nombre = document.getElementById('nombreDep').value;
-    const categoria = document.getElementById('catDep').value;
+    const nombre    = document.getElementById('nombreDep').value.trim();
+    const categoria = document.getElementById('catDep').value.trim();
+    const btn       = document.getElementById('btnAgregar');
 
-    if (!nombre) return alert("El nombre es obligatorio");
+    if (!nombre) { toast('El nombre del deporte es obligatorio.', 'err'); return; }
 
-    await fetch('/api/deportes', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nombre, categoria })
-    });
+    btn.classList.add('is-loading'); btn.disabled = true;
 
-    document.getElementById('nombreDep').value = '';
-    document.getElementById('catDep').value = '';
-    listarDeportes();
+    try {
+      const res = await fetch('/api/deportes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, categoria })
+      });
+
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+
+      document.getElementById('nombreDep').value = '';
+      document.getElementById('catDep').value = '';
+      toast(`Deporte "${nombre}" agregado.`, 'ok');
+      listarDeportes();
+    } catch (e) {
+      toast('Error al agregar el deporte.', 'err');
+    } finally {
+      btn.classList.remove('is-loading'); btn.disabled = false;
+    }
   }
 
-  async function eliminarDeporte(id) {
-    if (!confirm("¿Eliminar este deporte?")) return;
-    await fetch(`/api/deportes/${id}`, { method: 'DELETE' });
-    listarDeportes();
+  function pedirEliminar(id, nombre) {
+    openConfirm(`¿Eliminar el deporte "${nombre}"? Esta acción no se puede deshacer.`, () => eliminarDeporte(id, nombre));
+  }
+
+  async function eliminarDeporte(id, nombre) {
+    try {
+      const res = await fetch(`/api/deportes/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error();
+      toast(`Deporte "${nombre}" eliminado.`, 'ok');
+      listarDeportes();
+    } catch (e) {
+      toast('Error al eliminar el deporte.', 'err');
+    }
   }
 </script>
-
 </body>
 </html>

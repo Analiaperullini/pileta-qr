@@ -11,5 +11,9 @@ public interface CarnetRepo extends JpaRepository<Carnet, Long> {
 
     Optional<Carnet> findFirstByTokenAndAnuladoFalse(String token);
 
+    Optional<Carnet> findFirstByToken(String token);
+
+    Optional<Carnet> findFirstByTokenStartingWith(String prefix);
+
     boolean existsByToken(String token);
 }

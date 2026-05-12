@@ -6,6 +6,7 @@ import com.pileta.pileta_qr.dto.CarnetCreateResponse;
 import com.pileta.pileta_qr.dto.ValidacionResponse;
 import com.pileta.pileta_qr.model.Carnet;
 import com.pileta.pileta_qr.repo.CarnetRepo;
+import com.pileta.pileta_qr.service.TokenService;
 import com.pileta.pileta_qr.util.QrUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.CacheControl;
@@ -21,33 +22,25 @@ import java.io.ByteArrayOutputStream;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.YearMonth;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Random;
 
 @RestController
 public class CarnetController {
 
     private final CarnetRepo carnetRepo;
     private final JdbcTemplate jdbcTemplate;
+    private final TokenService tokenService;
 
-    public CarnetController(CarnetRepo carnetRepo, JdbcTemplate jdbcTemplate) {
+    public CarnetController(CarnetRepo carnetRepo, JdbcTemplate jdbcTemplate, TokenService tokenService) {
         this.carnetRepo = carnetRepo;
         this.jdbcTemplate = jdbcTemplate;
+        this.tokenService = tokenService;
     }
 
     private String baseUrl(HttpServletRequest request) {
         return request.getScheme() + "://" + request.getHeader("Host");
-    }
-
-    private String generarTokenUnico6() {
-        Random r = new Random();
-        String token;
-        do {
-            token = String.valueOf(100000 + r.nextInt(900000));
-        } while (carnetRepo.existsByToken(token));
-        return token;
     }
 
     @PostMapping("/api/carnets")
@@ -71,7 +64,7 @@ public class CarnetController {
         c.setFechaVencimiento(vence);
         c.setEmitidoEn(LocalDateTime.now());
         c.setAnulado(false);
-        c.setToken(generarTokenUnico6());
+        c.setToken(tokenService.generarToken());
 
         Carnet guardado = carnetRepo.save(c);
         return new CarnetCreateResponse(guardado.getId(), guardado.getToken(), "/qr.png?token=" + guardado.getToken(), guardado.getMes(), guardado.getAnio(), guardado.getFechaVencimiento().toString());
@@ -104,16 +97,37 @@ public class CarnetController {
         }
     }
 
+    @GetMapping("/c/{token}")
+    public ResponseEntity<Void> redirigirCarnet(@PathVariable String token) {
+        return ResponseEntity.status(302)
+            .location(URI.create("/scan.html?token=" + token))
+            .build();
+    }
+
     @GetMapping("/validar-qr")
     public ValidacionResponse validar(@RequestParam String token) {
-        Optional<Carnet> opt = carnetRepo.findFirstByTokenAndAnuladoFalse(token);
-        if (opt.isEmpty()) return new ValidacionResponse("TOKEN_INVALIDO", null, null, "No existe");
-        
+        Optional<Carnet> opt;
+        if (token.matches("[0-9a-fA-F]{8}")) {
+            opt = carnetRepo.findFirstByTokenStartingWith(token);
+        } else {
+            opt = carnetRepo.findFirstByToken(token);
+        }
+        if (opt.isEmpty()) return new ValidacionResponse("TOKEN_INVALIDO", null, null, "Token no existe");
+
         Carnet c = opt.get();
-        String nombre = "";
+        String nombre;
         try {
             nombre = jdbcTemplate.queryForObject("SELECT nombre FROM socios WHERE id = ?", String.class, c.getSocioId());
         } catch (Exception e) { nombre = "Socio #" + c.getSocioId(); }
+
+        if (Boolean.TRUE.equals(c.getAnulado())) {
+            return new ValidacionResponse("ANULADO", nombre, c.getFechaVencimiento(), "Carnet anulado");
+        }
+
+        if (c.getFechaVencimiento() != null && c.getFechaVencimiento().isBefore(LocalDate.now())) {
+            return new ValidacionResponse("VENCIDO", nombre, c.getFechaVencimiento(),
+                "Vencido el " + c.getFechaVencimiento().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        }
 
         return new ValidacionResponse("OK", nombre, c.getFechaVencimiento(), "Habilitado");
     }

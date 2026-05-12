@@ -3,118 +3,109 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Login - Pileta QR</title>
-  <script src="/auth.js"></script>
+  <title>Iniciar sesión — Club Pileta QR</title>
+  <script>(function(){document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark');})()</script>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="auth.js"></script>
   <style>
-    :root{
-      --bg:#0b1220;
-      --card:#101a33;
-      --muted:#94a3b8;
-      --txt:#e2e8f0;
-      --accent:#22c55e;
-      --danger:#ef4444;
-      --border:rgba(255,255,255,.08);
+    body { display: grid; place-items: center; padding: var(--p); }
+
+    .login-card {
+      width: min(420px, 100%);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      animation: _fadeUp .35s ease-out both;
     }
-    *{box-sizing:border-box;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    body{
-      margin:0; min-height:100vh;
-      background: radial-gradient(1200px 600px at 30% 10%, #1b2a5a 0%, var(--bg) 55%);
-      display:grid; place-items:center; padding:24px;
-      color:var(--txt);
+
+    .login-logo {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 28px;
     }
-    .card{
-      width:min(420px, 92vw);
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:22px;
-      box-shadow:0 20px 60px rgba(0,0,0,.35);
+    .login-logo-badge {
+      width: 48px; height: 48px; border-radius: 16px; flex-shrink: 0;
+      display: grid; place-items: center;
+      background: var(--accent-dim); border: 1px solid var(--accent-ring);
+      font-weight: 900; font-size: 14px; color: var(--accent-txt);
     }
-    h1{margin:0 0 8px 0; font-size:22px;}
-    p{margin:0 0 18px 0; color:var(--muted); font-size:14px;}
-    label{display:block; margin:12px 0 6px; color:var(--muted); font-size:13px;}
-    input{
-      width:100%;
-      padding:12px 12px;
-      border-radius:12px;
-      border:1px solid var(--border);
-      background:rgba(0,0,0,.25);
-      color:var(--txt);
-      outline:none;
+    .login-logo h1 { margin: 0; font-size: 20px; }
+    .login-logo p  { color: var(--txt-muted); font-size: 13px; margin-top: 3px; }
+
+    .field-wrap { margin-top: 18px; display: grid; gap: 6px; }
+
+    .error-banner {
+      display: none; margin-top: 16px;
+      padding: 11px 14px; border-radius: var(--r);
+      background: var(--danger-dim); border: 1px solid var(--danger-ring);
+      color: var(--danger-txt); font-size: 13px;
+      align-items: center; gap: 8px;
+      animation: _fadeUp .2s ease-out;
     }
-    input:focus{border-color:rgba(34,197,94,.55); box-shadow:0 0 0 3px rgba(34,197,94,.15);}
-    .row{display:flex; gap:10px; margin-top:14px;}
-    button{
-      width:100%;
-      padding:12px;
-      border:0;
-      border-radius:12px;
-      background:linear-gradient(90deg, #22c55e, #16a34a);
-      color:#05130a;
-      font-weight:700;
-      cursor:pointer;
-    }
-    .hint{margin-top:10px; font-size:12px; color:var(--muted);}
-    .err{margin-top:10px; color:var(--danger); font-size:13px; display:none;}
-    .logo{
-      display:flex; align-items:center; gap:10px; margin-bottom:12px;
-    }
-    .badge{
-      width:38px; height:38px; border-radius:12px;
-      display:grid; place-items:center;
-      background:rgba(34,197,94,.15);
-      border:1px solid rgba(34,197,94,.25);
-      font-weight:900; color:#86efac;
+    .error-banner.visible { display: flex; }
+
+    .btn-submit { margin-top: 22px; }
+
+    .login-footer {
+      margin-top: 20px; text-align: center;
+      color: var(--txt-muted); font-size: 12px;
     }
   </style>
 </head>
 <body>
-  <div class="card">
-    <div class="logo">
-      <div class="badge">QR</div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-badge">QR</div>
       <div>
-        <h1>Pileta - Sistema de Carnets</h1>
-        <p>Ingresá para gestionar socios y generar carnets.</p>
+        <h1>Club Pileta</h1>
+        <p>Sistema de Carnets y Control de Acceso</p>
       </div>
     </div>
 
-    <label>Usuario</label>
-    <input id="user" placeholder="admin" autocomplete="username" />
+    <form method="post" action="/login" id="loginForm">
+      <div class="field-wrap">
+        <label class="form-label" for="username">Usuario</label>
+        <input class="form-input" id="username" name="username"
+               placeholder="admin" autocomplete="username" autofocus />
+      </div>
 
-    <label>Contraseña</label>
-    <input id="pass" type="password" placeholder="••••••••" autocomplete="current-password" />
+      <div class="field-wrap">
+        <label class="form-label" for="password">Contraseña</label>
+        <input class="form-input" id="password" name="password"
+               type="password" placeholder="••••••••" autocomplete="current-password" />
+      </div>
 
-    <div class="row">
-      <button id="btn">Entrar</button>
+      <div id="errorBanner" class="error-banner">
+        <span>⚠️</span>
+        <span>Usuario o contraseña incorrectos. Intentá de nuevo.</span>
+      </div>
+
+      <button type="submit" id="btnSubmit" class="btn btn-primary btn-lg btn-full btn-submit">
+        Ingresar
+      </button>
+    </form>
+
+    <div class="login-footer">
+      Club Pileta QR &nbsp;·&nbsp; Sistema de gestión
+      <div style="margin-top:10px">
+        <button class="btn btn-sm" id="themeToggle" onclick="toggleTheme()">Modo claro</button>
+      </div>
     </div>
-
-    <div id="err" class="err">Usuario o contraseña incorrectos.</div>
-    <div class="hint">Demo: usuario <b>admin</b> / contraseña <b>1234</b></div>
   </div>
 
   <script>
-    // si ya está logueada, chau login
-    if (isLogged()) location.href = "/index.html";
-
-    const $ = (id) => document.getElementById(id);
-    const btn = $("btn"), user = $("user"), pass = $("pass"), err = $("err");
-
-    function doLogin(){
-      err.style.display = "none";
-      const u = user.value.trim();
-      const p = pass.value.trim();
-
-      // demo simple (después lo pasamos a backend/Spring Security)
-      if (u === "admin" && p === "1234") {
-        loginOk();
-        location.href = "/index.html";
-      } else {
-        err.style.display = "block";
-      }
+    initTheme();
+    if (new URLSearchParams(location.search).has('error')) {
+      document.getElementById('errorBanner').classList.add('visible');
     }
 
-    btn.addEventListener("click", doLogin);
-    pass.addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
+    document.getElementById('loginForm').addEventListener('submit', function() {
+      const btn = document.getElementById('btnSubmit');
+      btn.classList.add('is-loading');
+      btn.textContent = 'Ingresando';
+      btn.disabled = true;
+    });
   </script>
 </body>
 </html>
